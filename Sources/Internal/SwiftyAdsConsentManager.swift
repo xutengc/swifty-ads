@@ -102,10 +102,22 @@ extension SwiftyAdsConsentManager: SwiftyAdsConsentManagerType {
                 completion(.failure(error))
                 return
             }
-
+            
+            var regionCode = "US"
+            if #available(iOS 16, *) {
+                regionCode = Locale.current.region?.identifier ?? ""
+            } else {
+                regionCode = Locale.current.regionCode ?? ""
+            }
             // The consent information state was updated and we can now check if a form is available.
             switch self.consentInformation.formStatus {
             case .available:
+                let countryList = ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "GB"]
+                if !countryList.contains(where: { $0 == regionCode }) {
+                    completion(.success(self.consentStatus))
+                    return
+                }
+                
                 DispatchQueue.main.async {
                     UMPConsentForm.load { [weak self ] (form, error) in
                         guard let self = self else { return }
